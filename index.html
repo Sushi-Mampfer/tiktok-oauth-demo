@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok OAuth Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #000;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status-box {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status-box.success {
+            display: block;
+            background-color: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            color: #0369a1;
+        }
+
+        .status-box.error {
+            display: block;
+            background-color: #fef2f2;
+            border: 1px solid #f87171;
+            color: #991b1b;
+        }
+
+        .user-info {
+            padding: 12px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #374151;
+            word-break: break-all;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #000;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #000;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-section {
+            background-color: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .info-section h3 {
+            color: #000;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .code-reference {
+            background-color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            color: #667eea;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        .flow-steps {
+            margin-top: 12px;
+        }
+
+        .flow-steps li {
+            margin-left: 20px;
+            margin-bottom: 6px;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 TikTok OAuth Demo</h1>
+        <p class="subtitle">Real OAuth Authorization Code Flow</p>
+
+        <!-- Status Display -->
+        <div id="statusBox" class="status-box"></div>
+
+        <!-- User Info Display -->
+        <div id="userInfoBox" style="display: none;">
+            <strong>Authorization Code Retrieved:</strong>
+            <div class="user-info" id="userInfo"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button id="connectBtn" class="btn btn-primary">Connect TikTok Account</button>
+            <button id="clearBtn" class="btn btn-secondary">Clear Session</button>
+        </div>
+
+        <!-- Information Section -->
+        <div class="info-section">
+            <h3>📋 OAuth Authorization Code Flow</h3>
+            <p>This demo implements the real TikTok OAuth Authorization Code flow:</p>
+            <ol class="flow-steps">
+                <li><strong>1. Authorization Request</strong> - Redirect to TikTok login</li>
+                <li><strong>2. User Authentication</strong> - User logs into TikTok</li>
+                <li><strong>3. Consent Screen</strong> - User approves access to basic info</li>
+                <li><strong>4. Authorization Code</strong> - TikTok redirects with code</li>
+                <li><strong>5. Code Storage</strong> - Code stored in browser (frontend-only)</li>
+            </ol>
+            <p style="margin-top: 12px; font-size: 12px; color: #6b7280;">
+                <strong>Note:</strong> Token exchange (code → access_token) requires server-side code to keep client_secret secure. This demo shows the frontend portion of the complete OAuth flow.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                <a href="privacy.html" target="_blank">Privacy Policy</a> · 
+                <a href="terms.html" target="_blank">Terms of Service</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // TikTok OAuth Authorization Code Flow - Frontend Only
+        // ============================================================
+        
+        // Replace with your actual TikTok Client Key from Developer Platform
+        const CONFIG = {
+            CLIENT_KEY: 'aw42ukhuxhuwvhgjthis', // Replace with your client_key from TikTok Developer Dashboard
+            REDIRECT_URI: 'https://kshitij1310.github.io/tiktok-oauth-demo/oauth/callback.html',
+            AUTH_ENDPOINT: 'https://www.tiktok.com/v2/auth/authorize/',
+            SCOPE: 'user.info.basic'
+        };
+
+        const elements = {
+            connectBtn: document.getElementById('connectBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            statusBox: document.getElementById('statusBox'),
+            userInfoBox: document.getElementById('userInfoBox'),
+            userInfo: document.getElementById('userInfo')
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            restoreConnectionState();
+            setupEventListeners();
+        });
+
+        /**
+         * Restore connection state from localStorage if available
+         */
+        function restoreConnectionState() {
+            const storedCode = localStorage.getItem('tiktok_auth_code');
+            
+            if (storedCode) {
+                showSuccessState(storedCode);
+            }
+        }
+
+        /**
+         * Setup event listeners for buttons
+         */
+        function setupEventListeners() {
+            elements.connectBtn.addEventListener('click', handleConnectClick);
+            elements.clearBtn.addEventListener('click', handleClearClick);
+        }
+
+        /**
+         * Handle "Connect TikTok Account" button click
+         * Initiates the OAuth Authorization Code flow by redirecting to TikTok
+         */
+        function handleConnectClick() {
+            // Generate a random state parameter for CSRF protection
+            const state = generateRandomState();
+            localStorage.setItem('oauth_state', state);
+
+            // Build the authorization URL with required parameters
+            const authUrl = new URL(CONFIG.AUTH_ENDPOINT);
+            authUrl.searchParams.append('client_key', CONFIG.CLIENT_KEY);
+            authUrl.searchParams.append('response_type', 'code');
+            authUrl.searchParams.append('scope', CONFIG.SCOPE);
+            authUrl.searchParams.append('redirect_uri', CONFIG.REDIRECT_URI);
+            authUrl.searchParams.append('state', state);
+
+            // Redirect user to TikTok authorization endpoint
+            // User will see TikTok login screen and consent screen
+            window.location.href = authUrl.toString();
+        }
+
+        /**
+         * Handle "Clear Session" button click
+         * Removes stored authorization code and resets UI
+         */
+        function handleClearClick() {
+            localStorage.removeItem('tiktok_auth_code');
+            localStorage.removeItem('oauth_state');
+            resetUI();
+            showMessage('Session cleared', 'success');
+        }
+
+        /**
+         * Show success state when authorization code is received
+         * @param {string} code - The authorization code from TikTok
+         */
+        function showSuccessState(code) {
+            elements.connectBtn.disabled = true;
+            elements.connectBtn.textContent = '✓ Connected to TikTok';
+            
+            elements.userInfoBox.style.display = 'block';
+            elements.userInfo.textContent = code;
+            
+            showMessage('Authorization code successfully received and stored', 'success');
+        }
+
+        /**
+         * Show error message
+         * @param {string} message - Error message to display
+         */
+        function showErrorMessage(message) {
+            showMessage(`Error: ${message}`, 'error');
+        }
+
+        /**
+         * Display status message
+         * @param {string} message - Message text
+         * @param {string} type - 'success' or 'error'
+         */
+        function showMessage(message, type) {
+            elements.statusBox.className = `status-box ${type}`;
+            elements.statusBox.textContent = message;
+        }
+
+        /**
+         * Reset UI to initial state
+         */
+        function resetUI() {
+            elements.connectBtn.disabled = false;
+            elements.connectBtn.textContent = 'Connect TikTok Account';
+            elements.userInfoBox.style.display = 'none';
+            elements.statusBox.style.display = 'none';
+        }
+
+        /**
+         * Generate a random state parameter for CSRF protection
+         * @returns {string} Random state value
+         */
+        function generateRandomState() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let state = '';
+            for (let i = 0; i < 32; i++) {
+                state += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return state;
+        }
+    </script>
+</body>
+</html>
